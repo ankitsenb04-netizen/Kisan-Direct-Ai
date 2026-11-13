@@ -231,7 +231,7 @@
       <button type="submit" class="submit-btn" data-i18n="registerBtn">Complete Registration</button>
     </form>
 
-    <a href="homepage.html" class="home-link" data-i18n="homeLink">← Back to Home</a>
+    <a href="../homepage/homepage.html" class="home-link" data-i18n="homeLink">← Back to Home</a>
   </div>
 
   <script>
@@ -329,39 +329,41 @@
       }
     }
 
-    function handleRegister(e) {
+    const API = "http://127.0.0.1:8000";
+    function toEmail(id){ return id.includes("@") ? id : id + "@kisan.local"; }
+    async function handleRegister(e) {
       e.preventDefault();
       const t = translations[currentLang];
-      const farmer = {
-        name: document.getElementById('regName').value,
-        phone: document.getElementById('regPhone').value,
-        password: document.getElementById('regPassword').value
-      };
-
-      localStorage.setItem('kisanUser', JSON.stringify(farmer));
-      alert(t.welcomeMsg(farmer.name));
-      switchTab('login');
+      const name = document.getElementById('regName').value;
+      const email = toEmail(document.getElementById('regPhone').value.trim());
+      const password = document.getElementById('regPassword').value;
+      try {
+        const r = await fetch(API + "/api/register", {method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({name, email, password, role:"farmer"})});
+        const d = await r.json();
+        if(!r.ok) throw new Error(d.detail || "Registration failed");
+        localStorage.setItem('kdToken', d.access_token);
+        localStorage.setItem('kdUser', JSON.stringify({id:d.id, name:d.name, email:d.email, role:d.role}));
+        alert(t.welcomeMsg(name));
+        window.location.href = '../../mvp/frontend/farmer-dashboard.html';
+      } catch(err){ alert(err.message); }
     }
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       const t = translations[currentLang];
-      const inputId = document.getElementById('loginId').value;
-      const inputPass = document.getElementById('loginPassword').value;
-
-      const savedUser = JSON.parse(localStorage.getItem('kisanUser'));
-
-      if (!savedUser) {
-        alert(t.noAccount);
-        return;
-      }
-
-      if (inputId === savedUser.phone && inputPass === savedUser.password) {
-        alert(t.loginWelcome(savedUser.name));
-        window.location.href = 'homepage.html';
-      } else {
-        alert(t.wrongCreds);
-      }
+      const email = toEmail(document.getElementById('loginId').value.trim());
+      const password = document.getElementById('loginPassword').value;
+      try {
+        const r = await fetch(API + "/api/login", {method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({email, password})});
+        const d = await r.json();
+        if(!r.ok) throw new Error(d.detail || "Login failed");
+        localStorage.setItem('kdToken', d.access_token);
+        localStorage.setItem('kdUser', JSON.stringify({id:d.id, name:d.name, email:d.email, role:d.role}));
+        alert(t.loginWelcome(d.name));
+        window.location.href = d.role === "farmer" ? '../../mvp/frontend/farmer-dashboard.html' : '../../mvp/frontend/index.html';
+      } catch(err){ alert(t.wrongCreds); }
     }
 
     applyTranslations();

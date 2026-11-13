@@ -1,0 +1,14 @@
+services:
+  backend:
+    build: ./mvp/backend
+    ports: ["8000:8000"]
+    environment:
+      KISAN_SECRET_KEY: ${KISAN_SECRET_KEY:-change-me-to-a-long-random-secret}
+      KISAN_CORS_ORIGINS: http://127.0.0.1:5500,http://localhost:5500
+    volumes: ["./mvp/backend/kisan_direct.db:/app/kisan_direct.db"]
+  frontend:
+    image: python:3.12-slim
+    command: python -m http.server 5500
+    working_dir: /app
+    ports: ["5500:5500"]
+    volumes: ["./mvp/frontend:/app"]
