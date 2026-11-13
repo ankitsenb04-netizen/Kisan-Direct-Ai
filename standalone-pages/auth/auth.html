@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kisan Portal | Login & Registration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      /* body background */
+      background: linear-gradient(rgba(14, 116, 144, 0.45), rgba(46, 125, 50, 0.4)), 
+                  url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Glassmorphic White Card */
+    .auth-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 440px;
+      padding: 35px 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      border-top: 6px solid #2e7d32;
+      position: relative;
+    }
+
+    /* Language toggle button */
+    .lang-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #e2e8f0;
+      color: #4a2e18;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .lang-toggle:hover {
+      background: #cbd5e1;
+    }
+
+    .header-box {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header-box .icon {
+      font-size: 44px;
+      line-height: 1;
+    }
+
+    .header-box h2 {
+      color: #4a2e18; /* Rich Soil Brown */
+      font-size: 26px;
+      margin-top: 8px;
+      font-weight: 700;
+    }
+
+    .header-box p {
+      color: #555;
+      font-size: 14px;
+      margin-top: 3px;
+    }
+
+    /* Tab Switcher */
+    .tab-container {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4a2e18;
+      cursor: pointer;
+      border-radius: 9px;
+      transition: 0.3s ease;
+    }
+
+    .tab-btn.active {
+      background: #2e7d32;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(46, 125, 50, 0.3);
+    }
+
+    .form-box {
+      display: none;
+    }
+
+    .form-box.active {
+      display: block;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a2e18;
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      outline: none;
+      font-size: 14px;
+      background: #ffffff;
+      transition: 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: #0284c7; /* Sky blue glow */
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: #2e7d32;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    }
+
+    .submit-btn:hover {
+      background: #256628;
+      transform: translateY(-1px);
+    }
+
+    .home-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #0369a1;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .home-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <button class="lang-toggle" id="langToggleBtn" onclick="toggleLanguage()">हिंदी</button>
+
+    <div class="header-box">
+      <div class="icon">🌾</div>
+      <h2 data-i18n="title">Kisan Portal</h2>
+      <p data-i18n="subtitle">Farmer Service & Development Center</p>
+    </div>
+
+    <div class="tab-container">
+      <button class="tab-btn active" id="loginTabBtn" onclick="switchTab('login')" data-i18n="loginTab">Login</button>
+      <button class="tab-btn" id="registerTabBtn" onclick="switchTab('register')" data-i18n="registerTab">New Registration</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="form-box active" onsubmit="handleLogin(event)">
+      <div class="input-group">
+        <label data-i18n="loginIdLabel">Mobile Number / Farmer ID</label>
+        <input type="text" id="loginId" data-i18n-placeholder="loginIdPlaceholder" placeholder="e.g. 9876543210" required>
+      </div>
+
+      <div class="input-group">
+        <label data-i18n="passwordLabel">Password</label>
+        <input type="password" id="loginPassword" data-i18n-placeholder="passwordPlaceholder" placeholder="Enter password" required>
+      </div>
+
+      <button type="submit" class="submit-btn" data-i18n="loginBtn">Login</button>
+    </form>
+
+    <!-- REGISTRATION FORM -->
+    <form id="registerForm" class="form-box" onsubmit="handleRegister(event)">
+      <div class="input-group">
+        <label data-i18n="nameLabel">Farmer's Name</label>
+        <input type="text" id="regName" data-i18n-placeholder="namePlaceholder" placeholder="Enter your full name" required>
+      </div>
+
+      <div class="input-group">
+        <label data-i18n="phoneLabel">Mobile Number</label>
+        <input type="tel" id="regPhone" data-i18n-placeholder="phonePlaceholder" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+      </div>
+
+      <div class="input-group">
+        <label data-i18n="createPasswordLabel">Create Password</label>
+        <input type="password" id="regPassword" data-i18n-placeholder="createPasswordPlaceholder" placeholder="Create a new password" required>
+      </div>
+
+      <button type="submit" class="submit-btn" data-i18n="registerBtn">Complete Registration</button>
+    </form>
+
+    <a href="homepage.html" class="home-link" data-i18n="homeLink">← Back to Home</a>
+  </div>
+
+  <script>
+    const translations = {
+      en: {
+        title: "Kisan Portal",
+        subtitle: "Farmer Service & Development Center",
+        loginTab: "Login",
+        registerTab: "New Registration",
+        loginIdLabel: "Mobile Number / Farmer ID",
+        loginIdPlaceholder: "e.g. 9876543210",
+        passwordLabel: "Password",
+        passwordPlaceholder: "Enter password",
+        loginBtn: "Login",
+        nameLabel: "Farmer's Name",
+        namePlaceholder: "Enter your full name",
+        phoneLabel: "Mobile Number",
+        phonePlaceholder: "10-digit mobile number",
+        createPasswordLabel: "Create Password",
+        createPasswordPlaceholder: "Create a new password",
+        registerBtn: "Complete Registration",
+        homeLink: "← Back to Home",
+        toggleLabel: "हिंदी",
+        welcomeMsg: (name) => `Congratulations ${name}! Your account has been created successfully. Please login now.`,
+        loginWelcome: (name) => `Welcome, ${name}!`,
+        noAccount: "No farmer account found! Please register first.",
+        wrongCreds: "Incorrect mobile number or password!"
+      },
+      hi: {
+        title: "किसान पोर्टल",
+        subtitle: "अन्नदाता सेवा और विकास केंद्र",
+        loginTab: "लॉग इन",
+        registerTab: "नया पंजीकरण",
+        loginIdLabel: "मोबाइल नंबर / किसान ID",
+        loginIdPlaceholder: "उदा. 9876543210",
+        passwordLabel: "पासवर्ड",
+        passwordPlaceholder: "पासवर्ड दर्ज करें",
+        loginBtn: "लॉग इन करें",
+        nameLabel: "किसान का नाम",
+        namePlaceholder: "अपना पूरा नाम लिखें",
+        phoneLabel: "मोबाइल नंबर",
+        phonePlaceholder: "10 अंकों का मोबाइल नंबर",
+        createPasswordLabel: "पासवर्ड बनाएं",
+        createPasswordPlaceholder: "नया पासवर्ड बनाएं",
+        registerBtn: "पंजीकरण पूरा करें",
+        homeLink: "← मुख्य पृष्ठ पर वापस जाएं",
+        toggleLabel: "English",
+        welcomeMsg: (name) => `बधाई हो ${name} जी! आपका खाता सफलतापूर्वक बन गया है। अब लॉग इन करें।`,
+        loginWelcome: (name) => `स्वागत है, ${name} जी!`,
+        noAccount: "कोई किसान खाता नहीं मिला! कृपया पहले नया पंजीकरण करें।",
+        wrongCreds: "गलत मोबाइल नंबर या पासवर्ड!"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function applyTranslations() {
+      const t = translations[currentLang];
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.setAttribute('placeholder', t[key]);
+      });
+
+      document.getElementById('langToggleBtn').textContent = t.toggleLabel;
+      document.documentElement.lang = currentLang;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'hi' : 'en';
+      applyTranslations();
+    }
+
+    function switchTab(mode) {
+      const loginForm = document.getElementById('loginForm');
+      const regForm = document.getElementById('registerForm');
+      const loginBtn = document.getElementById('loginTabBtn');
+      const regBtn = document.getElementById('registerTabBtn');
+
+      if (mode === 'login') {
+        loginForm.classList.add('active');
+        regForm.classList.remove('active');
+        loginBtn.classList.add('active');
+        regBtn.classList.remove('active');
+      } else {
+        loginForm.classList.remove('active');
+        regForm.classList.add('active');
+        loginBtn.classList.remove('active');
+        regBtn.classList.add('active');
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const t = translations[currentLang];
+      const farmer = {
+        name: document.getElementById('regName').value,
+        phone: document.getElementById('regPhone').value,
+        password: document.getElementById('regPassword').value
+      };
+
+      localStorage.setItem('kisanUser', JSON.stringify(farmer));
+      alert(t.welcomeMsg(farmer.name));
+      switchTab('login');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const t = translations[currentLang];
+      const inputId = document.getElementById('loginId').value;
+      const inputPass = document.getElementById('loginPassword').value;
+
+      const savedUser = JSON.parse(localStorage.getItem('kisanUser'));
+
+      if (!savedUser) {
+        alert(t.noAccount);
+        return;
+      }
+
+      if (inputId === savedUser.phone && inputPass === savedUser.password) {
+        alert(t.loginWelcome(savedUser.name));
+        window.location.href = 'homepage.html';
+      } else {
+        alert(t.wrongCreds);
+      }
+    }
+
+    applyTranslations();
+  </script>
+
+</body>
+</html>
