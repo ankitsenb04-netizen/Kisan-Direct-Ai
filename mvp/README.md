@@ -35,7 +35,7 @@ python -m http.server 5500
 Then open http://127.0.0.1:5500
 
 ## Demo accounts
-Register a farmer or customer from the app. This MVP stores accounts and products in SQLite. Passwords are hashed.
+Register a farmer or customer from the app, or use the seeded demo accounts on a first run with an empty database: farmer Ramesh (`ramesh@example.com` / `demo1234`) and demo buyer (`buyer@example.com` / `demo1234`). This MVP stores accounts and products in SQLite. Passwords are bcrypt-hashed, and logins return a JWT session.
 
 ## AI endpoints
 - `POST /api/predict/price`
@@ -45,5 +45,5 @@ Register a farmer or customer from the app. This MVP stores accounts and product
 1. Replace synthetic training data with verified historical mandi prices.
 2. Add district/APMC-specific datasets, crop seasonality and weather observations.
 3. Evaluate models on held-out chronological data and show prediction intervals.
-4. Add secure JWT sessions, email/OTP verification, payment gateway and image storage.
-5. Deploy backend and frontend; configure CORS and HTTPS.
+4. JWT sessions are implemented (see the root README). Still to add: email/OTP verification, payment gateway and image storage.
+5. Deploy backend and frontend; configure CORS and HTTPS. Set a real `KISAN_SECRET_KEY` first.

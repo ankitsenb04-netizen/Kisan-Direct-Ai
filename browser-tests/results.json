@@ -1,0 +1,139 @@
+{
+  "results": [
+    [
+      "homepage loads 200",
+      "PASS",
+      "status=200"
+    ],
+    [
+      "homepage title/brand",
+      "PASS",
+      "Kisan Direct | AI Farmer Marketplace"
+    ],
+    [
+      "homepage nav links present",
+      "PASS",
+      ""
+    ],
+    [
+      "seeded listings visible",
+      "PASS",
+      "\ud83e\uddc5 | Onion |  | \ud83d\udccd Nadia \u00b7 Ramesh |  | 150 kg available |  | \u20b928/kg |  | Red onions, graded |  | \ud83e\udd54 | Potato |  | \ud83d\udccd Howrah \u00b7 Ramesh |  | 200 kg available |  | \u20b918/kg |  | Farm fresh potatoes |  | \ud83c\udf45 | Tomato |  | \ud83d\udccd Kolkata \u00b7 Ramesh |  | 100 kg available |  | \u20b924"
+    ],
+    [
+      "price prediction works",
+      "PASS",
+      "Estimated price: \u20b927.33/kg Indicative range: \u20b925.22\u2013\u20b929.45/kg Demo-model estimate trained on synthetic data; not a live mandi quote."
+    ],
+    [
+      "demand prediction works",
+      "PASS",
+      "Demand level: Medium Demo demand index: 166.9 Demo demand index (not tonnes or confirmed orders); trained on synthetic data."
+    ],
+    [
+      "auth modal opens",
+      "PASS",
+      ""
+    ],
+    [
+      "register farmer + auto-login",
+      "PASS",
+      "Hi, Test Farmer shown"
+    ],
+    [
+      "dashboard link visible for farmer",
+      "PASS",
+      ""
+    ],
+    [
+      "farmer creates listing",
+      "PASS",
+      ""
+    ],
+    [
+      "new listing appears in marketplace",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard greeting",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard My Produce",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard Market Price Intelligence",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard AI Selling Advisor",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard Top Buyer Matches (labelled sample)",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard Active Deliveries section",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard stat listings > 0",
+      "PASS",
+      "listings=1"
+    ],
+    [
+      "logout works",
+      "PASS",
+      ""
+    ],
+    [
+      "register customer + auto-login",
+      "PASS",
+      ""
+    ],
+    [
+      "buy button visible for customer",
+      "PASS",
+      "buy buttons=4"
+    ],
+    [
+      "customer places order via Buy button",
+      "PASS",
+      "dialogs: prompt: Quantity in kg:; alert: Order placed! Order #1"
+    ],
+    [
+      "My Orders shows the order",
+      "PASS",
+      "Order #1 \u2014 Onion  10 kg \u00b7 \u20b930/kg \u00b7 Howrah  Status: Placed"
+    ],
+    [
+      "wrong password rejected in UI",
+      "PASS",
+      "Incorrect email or password."
+    ],
+    [
+      "mobile homepage loads, no horizontal overflow",
+      "PASS",
+      "scrollWidth=390"
+    ],
+    [
+      "mobile dashboard loads",
+      "PASS",
+      ""
+    ]
+  ],
+  "console_errors": [
+    "[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "passed": 26,
+  "failed": 0
+}
