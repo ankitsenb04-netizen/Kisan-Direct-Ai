@@ -14,6 +14,27 @@ Based on the audited MVP (commit 40bfc6f). Changes in this integration build:
   real AI buyer matching is NOT implemented yet).
 - EmailStr validation, upper bounds, FK enforcement, global error handler.
 - ML models unchanged: RandomForest price/demand on synthetic data.
+
+Production hardening (see DEPLOYMENT.md):
+- KISAN_ENV=production requires a real KISAN_SECRET_KEY (>= 32 chars, not a
+  placeholder); otherwise the app refuses to start. Dev keeps the old
+  dev-only default, with a loud warning.
+- In production, KISAN_CORS_ORIGINS is required, and wildcards and
+  localhost origins are rejected. /docs and /openapi.json are off by
+  default in production (KISAN_ENABLE_DOCS=1 to turn them back on).
+- Demo seed data is opt-in: KISAN_SEED_DEMO_DATA=1. It defaults ON in
+  dev and OFF in production, so the demo accounts are never created in
+  production unless someone explicitly enables seeding.
+- Predict endpoints are rate-limited (KISAN_PREDICT_RATE_LIMIT, default
+  60/min per IP). Basic security headers are set on every response.
+- KISAN_SERVE_FRONTEND=1 makes the backend serve the whole website from
+  the same origin (no separate frontend host, no CORS needed for the
+  demo). It defaults ON in both production and dev, so local and
+  production behave identically: just run the backend and open
+  http://127.0.0.1:8000/. Routes: / = standalone homepage,
+  /auth (and /login -> /auth) = login/register page,
+  /marketplace = marketplace, /dashboard = farmer dashboard.
+  /api/* always takes priority over the static pages.
 """
 import logging
 import os
@@ -36,21 +57,104 @@ import sqlite3
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("kisan-direct")
 
-DB = Path(__file__).with_name("kisan_direct.db")
-SECRET_KEY = os.environ.get("KISAN_SECRET_KEY", "dev-only-change-me-in-production")
+KISAN_ENV = os.environ.get("KISAN_ENV", "development").lower()
+IS_PRODUCTION = KISAN_ENV == "production"
+
+# Database path. In production this points at the persistent volume
+# (fly.toml sets KISAN_DB_PATH=/data/kisan_direct.db). Locally it is the
+# SQLite file next to this module.
+DB = Path(
+    os.environ.get("KISAN_DB_PATH") or str(Path(__file__).with_name("kisan_direct.db"))
+)
+
+# --- Secret key: fail fast in production, dev-only default locally. ---
+PLACEHOLDER_SECRETS = {
+    "", "change-me-to-a-long-random-secret", "dev-only-change-me-in-production",
+    "replace-me", "replace-with-a-long-random-secret",
+    "replace-with-a-long-random-secret-at-least-32-chars",
+}
+_secret = os.environ.get("KISAN_SECRET_KEY", "")
+if IS_PRODUCTION:
+    if (
+        not _secret
+        or _secret in PLACEHOLDER_SECRETS
+        or "change-me" in _secret
+        or "replace-with" in _secret
+        or len(_secret) < 32
+    ):
+        raise RuntimeError(
+            "KISAN_ENV=production requires KISAN_SECRET_KEY: set a real secret "
+            "of at least 32 characters (generate one with: "
+            "python3 -c \"import secrets; print(secrets.token_urlsafe(32))\" ). "
+            "Refusing to start rather than running with a known/dev secret."
+        )
+    SECRET_KEY = _secret
+else:
+    SECRET_KEY = _secret or "dev-only-change-me-in-production"
+    if not _secret:
+        log.warning(
+            "KISAN_SECRET_KEY is not set; using the dev-only default secret. "
+            "Never use this outside localhost."
+        )
+
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = int(os.environ.get("KISAN_JWT_MINUTES", "720"))
-FRONTEND_ORIGINS = [
-    o.strip() for o in os.environ.get(
-        "KISAN_CORS_ORIGINS", "http://127.0.0.1:5500,http://localhost:5500"
-    ).split(",") if o.strip()
-]
 
-app = FastAPI(title="Kisan Direct AI API", version="1.1")
+# --- CORS: required and strict in production, localhost default in dev. ---
+_cors_raw = os.environ.get("KISAN_CORS_ORIGINS", "")
+if IS_PRODUCTION:
+    if not _cors_raw:
+        raise RuntimeError(
+            "KISAN_ENV=production requires KISAN_CORS_ORIGINS: set it to the "
+            "public frontend origin(s), comma-separated, e.g. "
+            "https://kisan-direct-ai.fly.dev. Refusing to start."
+        )
+    FRONTEND_ORIGINS = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+    if "*" in FRONTEND_ORIGINS or any(
+        "localhost" in o or "127.0.0.1" in o for o in FRONTEND_ORIGINS
+    ):
+        raise RuntimeError(
+            "KISAN_CORS_ORIGINS in production must not contain '*' or "
+            "localhost/127.0.0.1 origins. Refusing to start."
+        )
+else:
+    FRONTEND_ORIGINS = (
+        [o.strip() for o in _cors_raw.split(",") if o.strip()]
+        or ["http://127.0.0.1:5500", "http://localhost:5500"]
+    )
+
+PREDICT_RATE_LIMIT = int(os.environ.get("KISAN_PREDICT_RATE_LIMIT", "60"))
+SEED_DEMO_DATA = os.environ.get(
+    "KISAN_SEED_DEMO_DATA", "0" if IS_PRODUCTION else "1"
+) == "1"
+ENABLE_DOCS = os.environ.get(
+    "KISAN_ENABLE_DOCS", "0" if IS_PRODUCTION else "1"
+) == "1"
+SERVE_FRONTEND = os.environ.get("KISAN_SERVE_FRONTEND", "1") == "1"
+
+app = FastAPI(
+    title="Kisan Direct AI API", version="1.1",
+    docs_url="/docs" if ENABLE_DOCS else None,
+    redoc_url="/redoc" if ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if ENABLE_DOCS else None,
+)
 app.add_middleware(
     CORSMiddleware, allow_origins=FRONTEND_ORIGINS, allow_credentials=True,
     allow_methods=["GET", "POST"], allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    if IS_PRODUCTION:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+    return response
 
 CROPS = {
     "Tomato": 24, "Potato": 18, "Onion": 28, "Wheat": 25,
@@ -150,7 +254,10 @@ _rate: dict[str, list[float]] = defaultdict(list)
 
 
 def rate_limit(request: Request, limit: int = 20, window: int = 60):
-    key = request.client.host if request.client else "unknown"
+    # Keyed by IP *and* path, so a login attempt does not eat the
+    # predict budget (and vice versa).
+    host = request.client.host if request.client else "unknown"
+    key = f"{host}:{request.url.path}"
     now = time.time()
     hits = [t for t in _rate[key] if now - t < window]
     if len(hits) >= limit:
@@ -163,7 +270,13 @@ init_db()
 
 
 def seed_demo_data():
-    """Seed demo data once, only when the users table is empty. Test-only."""
+    """Seed demo data once, only when the users table is empty.
+
+    DEMO ONLY. The demo accounts (ramesh@example.com / demo1234 and
+    buyer@example.com / demo1234) are sample accounts for a hackathon demo,
+    not real accounts. Seeding is opt-in via KISAN_SEED_DEMO_DATA and is
+    OFF by default in production.
+    """
     with db() as con:
         if con.execute("SELECT COUNT(*) FROM users").fetchone()[0] > 0:
             return
@@ -182,10 +295,19 @@ def seed_demo_data():
             con.execute(
                 "INSERT INTO products(farmer_id,crop,quantity,price,location,description)"
                 " VALUES(?,?,?,?,?,?)", (farmer_id, crop, qty, price, loc, desc))
-        log.info("Seeded demo data: farmer Ramesh (ramesh@example.com / demo1234)")
+        log.info(
+            "Seeded DEMO data: farmer Ramesh (ramesh@example.com / demo1234). "
+            "Demo accounts only, not real accounts."
+        )
 
 
-seed_demo_data()
+if SEED_DEMO_DATA:
+    seed_demo_data()
+else:
+    log.info(
+        "Demo seed data is OFF (KISAN_SEED_DEMO_DATA is not 1). "
+        "No demo accounts are created."
+    )
 
 # Train demonstrator models on generated data. Replace with real, verified data for production.
 rng = np.random.default_rng(42)
@@ -266,9 +388,18 @@ async def unhandled(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Something went wrong. Please try again."})
 
 
-@app.get("/")
-def home():
-    return {"message": "Kisan Direct AI API is running", "docs": "/docs"}
+@app.get("/api")
+def api_root():
+    return {"message": "Kisan Direct AI API is running"}
+
+
+# GET / is only a JSON route when the website is NOT served from this
+# app. When SERVE_FRONTEND is on, the routes at the end of this file
+# serve the homepage at / instead.
+if not SERVE_FRONTEND:
+    @app.get("/")
+    def home():
+        return {"message": "Kisan Direct AI API is running"}
 
 
 @app.get("/api/health")
@@ -380,7 +511,8 @@ def buyers():
 
 
 @app.post("/api/predict/price")
-def predict_price(data: PredictIn):
+def predict_price(data: PredictIn, request: Request):
+    rate_limit(request, limit=PREDICT_RATE_LIMIT, window=60)
     x = features(data)
     estimate = float(price_model.predict(x)[0])
     tree_preds = np.array([tree.predict(x)[0] for tree in price_model.estimators_])
@@ -394,10 +526,119 @@ def predict_price(data: PredictIn):
 
 
 @app.post("/api/predict/demand")
-def predict_demand(data: PredictIn):
+def predict_demand(data: PredictIn, request: Request):
+    rate_limit(request, limit=PREDICT_RATE_LIMIT, window=60)
     x = features(data)
     estimate = float(demand_model.predict(x)[0])
     return {"crop": data.crop, "location": data.location,
             "estimated_demand_index": round(estimate, 1),
             "label": "High" if estimate >= 170 else "Medium" if estimate >= 135 else "Low",
             "note": "Demo demand index (not tonnes or confirmed orders); trained on synthetic data."}
+
+
+# --- Serve the whole website from the same origin. ---
+# One origin for the complete journey, local and production alike:
+#   /             standalone homepage (standalone-pages/homepage/)
+#   /auth         login/register page (standalone-pages/auth/); /login redirects here
+#   /marketplace  marketplace (mvp/frontend/index.html)
+#   /dashboard    farmer dashboard (mvp/frontend/farmer-dashboard.html)
+# Registered last, so /api/*, /docs and /api/health keep working and take
+# priority. Unknown /api/* paths still 404 (they fall through to the
+# static mount, which has no matching file) instead of returning HTML.
+# The pages use absolute asset paths (/style.css, /app.js, /homepage.css)
+# so they work from any of these routes.
+def _site_dir(*parts: str) -> Path:
+    """Find a site directory by walking up from this file, then from cwd.
+
+    main.py normally lives at mvp/backend/main.py, so the repo root is
+    two levels up. The cwd fallback matters for the test suite, which
+    imports a copy of this file from a temp dir while running pytest
+    from the repo root.
+    """
+    here = Path(__file__).resolve()
+    for base in [here.parent, *here.parents, Path.cwd()]:
+        candidate = base.joinpath(*parts)
+        if candidate.is_dir():
+            return candidate
+    # Docker layout: main.py is /app/main.py and the frontend is copied
+    # to /app/frontend (a sibling, not /app/mvp/frontend).
+    sibling = here.parent.joinpath(parts[-1])
+    if sibling.is_dir():
+        return sibling
+    return here.parent.joinpath(*parts)
+
+
+FRONTEND_DIR = _site_dir("mvp", "frontend")
+HOMEPAGE_DIR = _site_dir("standalone-pages", "homepage")
+AUTH_DIR = _site_dir("standalone-pages", "auth")
+if SERVE_FRONTEND:
+    from fastapi.responses import FileResponse, RedirectResponse
+    from fastapi.staticfiles import StaticFiles
+
+    def _page(directory: Path, filename: str):
+        """Serve one HTML file, or 404 with a plain message if it is missing."""
+        path = directory / filename
+        if path.is_file():
+            return FileResponse(path, media_type="text/html")
+        log.warning("Site file missing: %s", path)
+        return JSONResponse(status_code=404, content={"detail": "Page not found."})
+
+    @app.get("/", include_in_schema=False)
+    def homepage():
+        return _page(HOMEPAGE_DIR, "homepage.html")
+
+    @app.get("/homepage.css", include_in_schema=False)
+    def homepage_css():
+        return FileResponse(HOMEPAGE_DIR / "homepage.css", media_type="text/css")
+
+    @app.get("/auth", include_in_schema=False)
+    def auth_page():
+        return _page(AUTH_DIR, "auth.html")
+
+    @app.get("/login", include_in_schema=False)
+    def login_page():
+        # Canonical auth URL is /auth.
+        return RedirectResponse("/auth", status_code=302)
+
+    @app.get("/marketplace", include_in_schema=False)
+    def marketplace_page():
+        return _page(FRONTEND_DIR, "index.html")
+
+    @app.get("/dashboard", include_in_schema=False)
+    def dashboard_page():
+        return _page(FRONTEND_DIR, "farmer-dashboard.html")
+
+    # Legacy direct file URLs (used by the old Playwright suite and by
+    # bookmarks). Keep them working as redirects, not as duplicates.
+    @app.get("/index.html", include_in_schema=False)
+    def legacy_marketplace():
+        return RedirectResponse("/marketplace", status_code=302)
+
+    @app.get("/farmer-dashboard.html", include_in_schema=False)
+    def legacy_dashboard():
+        return RedirectResponse("/dashboard", status_code=302)
+
+    @app.get("/homepage.html", include_in_schema=False)
+    def legacy_homepage():
+        return RedirectResponse("/", status_code=302)
+
+    @app.get("/marketplace/", include_in_schema=False)
+    def marketplace_trailing_slash():
+        return RedirectResponse("/marketplace", status_code=302)
+
+    @app.get("/dashboard/", include_in_schema=False)
+    def dashboard_trailing_slash():
+        return RedirectResponse("/dashboard", status_code=302)
+
+    @app.get("/auth/", include_in_schema=False)
+    def auth_trailing_slash():
+        return RedirectResponse("/auth", status_code=302)
+
+    if FRONTEND_DIR.is_dir():
+        # Serves /style.css, /app.js and any other marketplace asset.
+        # Explicit routes above take priority; unknown paths 404.
+        app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+        log.info("Serving website from %s (homepage %s, auth %s) at /",
+                 FRONTEND_DIR, HOMEPAGE_DIR, AUTH_DIR)
+    else:
+        log.warning("KISAN_SERVE_FRONTEND=1 but frontend dir %s is missing.", FRONTEND_DIR)

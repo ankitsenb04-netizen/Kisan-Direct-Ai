@@ -1,0 +1,17 @@
+# Never put secrets, local databases, or dev tooling into the image.
+.env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.git/
+.gitignore
+browser-tests/
+tests/
+node_modules/
+*.zip

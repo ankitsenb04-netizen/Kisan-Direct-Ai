@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kisan Portal | Login & Registration</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
   <style>
     * {
       margin: 0;
@@ -228,10 +229,20 @@
         <input type="password" id="regPassword" data-i18n-placeholder="createPasswordPlaceholder" placeholder="Create a new password" required>
       </div>
 
+      <div class="input-group">
+        <label data-i18n="roleLabel">Account type</label>
+        <select id="regRole" style="width:100%;padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;background:#fff">
+          <option value="farmer">Farmer</option>
+          <option value="customer">Customer</option>
+        </select>
+      </div>
+
       <button type="submit" class="submit-btn" data-i18n="registerBtn">Complete Registration</button>
     </form>
 
-    <a href="../homepage/homepage.html" class="home-link" data-i18n="homeLink">← Back to Home</a>
+    <p id="authError" style="color:#b91c1c;font-size:13px;margin-top:12px;min-height:18px"></p>
+    <a href="/" class="home-link" data-i18n="homeLink">← Back to Home</a>
+    <a href="/marketplace" class="home-link">Browse the marketplace →</a>
   </div>
 
   <script>
@@ -329,24 +340,30 @@
       }
     }
 
-    const API = "http://127.0.0.1:8000";
-    function toEmail(id){ return id.includes("@") ? id : id + "@kisan.local"; }
+    const API = window.KISAN_API_URL || (location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "http://127.0.0.1:8000" : location.origin);
+    // Phone numbers are mapped to an email-shaped login id. The domain
+    // must pass the backend's EmailStr validation: "@kisan.local" is
+    // rejected (".local" is a reserved special-use name), so use
+    // "@phone.kisan.direct" instead. This is a login id only, not a
+    // real mailbox; no email is ever sent to it.
+    function toEmail(id){ return id.includes("@") ? id : id + "@phone.kisan.direct"; }
     async function handleRegister(e) {
       e.preventDefault();
       const t = translations[currentLang];
       const name = document.getElementById('regName').value;
       const email = toEmail(document.getElementById('regPhone').value.trim());
       const password = document.getElementById('regPassword').value;
+      const role = document.getElementById('regRole').value;
       try {
         const r = await fetch(API + "/api/register", {method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({name, email, password, role:"farmer"})});
+          body: JSON.stringify({name, email, password, role})});
         const d = await r.json();
         if(!r.ok) throw new Error(d.detail || "Registration failed");
         localStorage.setItem('kdToken', d.access_token);
         localStorage.setItem('kdUser', JSON.stringify({id:d.id, name:d.name, email:d.email, role:d.role}));
         alert(t.welcomeMsg(name));
-        window.location.href = '../../mvp/frontend/farmer-dashboard.html';
-      } catch(err){ alert(err.message); }
+        window.location.href = role === 'farmer' ? '/dashboard' : '/marketplace';
+      } catch(err){ document.getElementById('authError').textContent = err.message; }
     }
 
     async function handleLogin(e) {
@@ -362,10 +379,12 @@
         localStorage.setItem('kdToken', d.access_token);
         localStorage.setItem('kdUser', JSON.stringify({id:d.id, name:d.name, email:d.email, role:d.role}));
         alert(t.loginWelcome(d.name));
-        window.location.href = d.role === "farmer" ? '../../mvp/frontend/farmer-dashboard.html' : '../../mvp/frontend/index.html';
-      } catch(err){ alert(t.wrongCreds); }
+        window.location.href = d.role === 'farmer' ? '/dashboard' : '/marketplace';
+      } catch(err){ document.getElementById('authError').textContent = t.wrongCreds; }
     }
 
+    const _tab = new URLSearchParams(location.search).get('tab');
+    if (_tab === 'register' || _tab === 'login') switchTab(_tab);
     applyTranslations();
   </script>
 

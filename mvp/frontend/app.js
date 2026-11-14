@@ -1,4 +1,8 @@
-const API = "http://127.0.0.1:8000";
+// API base URL. Override with window.KISAN_API_URL (set in a <script> tag
+// before this file) to point at a separately hosted backend. Otherwise:
+// same origin when deployed (backend serves this frontend), localhost:8000
+// in local dev with the frontend on its own server.
+const API = window.KISAN_API_URL || (location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "http://127.0.0.1:8000" : location.origin);
 const crops = ["Tomato","Potato","Onion","Wheat","Rice","Cauliflower","Cabbage","Brinjal","Chilli","Mango","Banana"];
 const locations = ["Kolkata","Howrah","Hooghly","Nadia","Burdwan"];
 const cropEmoji = {Tomato:"🍅",Potato:"🥔",Onion:"🧅",Wheat:"🌾",Rice:"🍚",Cauliflower:"🥦",Cabbage:"🥬",Brinjal:"🍆",Chilli:"🌶️",Mango:"🥭",Banana:"🍌"};

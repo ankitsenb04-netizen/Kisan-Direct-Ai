@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Farmer Dashboard | Kisan Direct</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>"><link rel="stylesheet" href="style.css">
+<title>Farmer Dashboard | Kisan Direct</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>"><link rel="stylesheet" href="/style.css">
 <style>
 .dash{display:grid;grid-template-columns:220px 1fr;gap:16px;max-width:1100px;margin:0 auto;padding:16px}
 .sidebar{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;height:fit-content}
@@ -16,22 +16,23 @@
 </style>
 </head>
 <body>
-<header class="topbar"><a class="brand" href="index.html"><span class="logo">🌱</span> Kisan<span>Direct</span></a>
-<nav><a href="index.html">Marketplace</a><a href="index.html#ai">AI Predictions</a></nav>
+<header class="topbar"><a class="brand" href="/"><span class="logo">🌱</span> Kisan<span>Direct</span></a>
+<nav><a href="/">Home</a><a href="/marketplace">Marketplace</a><a href="/marketplace#ai">AI Predictions</a></nav>
 <div class="auth" id="authArea"></div></header>
 <main class="dash">
 <aside class="sidebar">
 <b>🌱 Kisan Direct</b>
-<a class="active" href="#">Dashboard</a>
+<a class="active" href="/dashboard">Dashboard</a>
 <a href="#produce">My Produce</a>
 <a href="#buyers">Find Buyers</a>
 <a href="#prices">Market Prices</a>
 <a href="#orders">Logistics / Orders</a>
-<a href="index.html#market">Transactions</a>
-<a href="index.html">Help &amp; Support</a>
+<a href="/marketplace#market">Transactions</a>
+<a href="/marketplace">Help &amp; Support</a>
 <p><small>Demo dashboard. Buyer list is sample data, see note below.</small></p>
 </aside>
 <section>
+<div id="authBanner"></div>
 <h1 id="greeting">Good Morning!</h1>
 <p id="sub">Your farm at a glance. Sign in as a farmer to see your listings.</p>
 <div class="cards">
@@ -48,13 +49,15 @@
 </section>
 </main>
 <script>
-const API="http://127.0.0.1:8000";
+const API=window.KISAN_API_URL||(location.hostname==="localhost"||location.hostname==="127.0.0.1"?"http://127.0.0.1:8000":location.origin);
 const token=localStorage.getItem("kdToken")||null;
 const user=JSON.parse(localStorage.getItem("kdUser")||"null");
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function authH(){return token?{"Authorization":"Bearer "+token}:{};}
-document.getElementById("authArea").innerHTML=user?`<span>Hi, ${esc(user.name)}</span> <button class="btn ghost" onclick="localStorage.removeItem('kdToken');localStorage.removeItem('kdUser');location.reload()">Logout</button>`:`<a class="btn ghost" href="index.html">Login / Register</a>`;
+document.getElementById("authArea").innerHTML=user?`<span>Hi, ${esc(user.name)}</span> <button class="btn ghost" onclick="localStorage.removeItem('kdToken');localStorage.removeItem('kdUser');location.reload()">Logout</button>`:`<a class="btn ghost" href="/auth">Login / Register</a>`;
 if(user){document.getElementById("greeting").textContent="Good Morning, "+user.name+"!";document.getElementById("sub").textContent="Your farm at a glance. Here are your listings, prices and orders.";}
+if(!user){document.getElementById("authBanner").innerHTML='<p style="background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px">Please <a href="/auth">log in</a> as a farmer to see your dashboard. You can still see the public price estimate below.</p>';}
+else if(user.role!=="farmer"){document.getElementById("authBanner").innerHTML='<p style="background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px">You are logged in as a customer ('+esc(user.name)+'). This dashboard is for farmer accounts. <a href="/marketplace">Go to the marketplace</a> to browse and order.</p>';document.getElementById("myProduce").innerHTML="<p>Switch to a farmer account to see your listings here.</p>";}
 async function load(){
  try{
   const products=await (await fetch(API+"/api/products")).json();
@@ -78,7 +81,7 @@ async function load(){
   } else {
     document.getElementById("orderList").innerHTML="<p>Log in to see your orders.</p>";
   }
- }catch(e){document.getElementById("priceIntel").textContent="Could not load live data. Is the backend running on http://127.0.0.1:8000?";}
+ }catch(e){document.getElementById("priceIntel").textContent="Could not load live data. Is the backend running?";}
 }
 load();
 </script>

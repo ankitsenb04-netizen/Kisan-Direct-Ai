@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kisan Direct | AI Farmer Marketplace</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>"><link rel="stylesheet" href="style.css">
+<title>Kisan Direct | AI Farmer Marketplace</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>"><link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="topbar"><a class="brand" href="#"><span class="logo">🌱</span> Kisan<span>Direct</span></a>
-<nav><a href="#market">Marketplace</a><a href="#ai">AI Predictions</a><a href="#sell">Sell Produce</a><a href="farmer-dashboard.html" id="dashLink" style="display:none">Dashboard</a></nav>
+<header class="topbar"><a class="brand" href="/"><span class="logo">🌱</span> Kisan<span>Direct</span></a>
+<nav><a href="/">Home</a><a href="#market">Marketplace</a><a href="#ai">AI Predictions</a><a href="#sell">Sell Produce</a><a href="/dashboard" id="dashLink" style="display:none">Dashboard</a></nav>
 <div class="auth" id="authArea"><button class="btn ghost" onclick="showAuth()">Login / Register</button></div></header>
 <main>
 <section class="hero"><div class="hero-copy"><span class="eyebrow">FARM FRESH · FAIR PRICES · SMARTER FARMING</span>
@@ -25,6 +25,6 @@
 <div class="panel sell-panel"><div class="form-grid"><label>Crop<select id="sellCrop"></select></label><label>Quantity (kg)<input id="sellQty" type="number" min="1" placeholder="e.g. 100"></label><label>Price (₹/kg)<input id="sellPrice" type="number" min="1" placeholder="e.g. 25"></label><label>Location<select id="sellLocation"></select></label><label class="wide">Description<input id="sellDesc" placeholder="Freshly harvested, organic, etc."></label></div><button class="btn primary" onclick="addProduct()">Publish listing</button><span id="sellMessage" class="message"></span></div></section>
 <section id="ordersSection" class="section" style="display:none"><div class="section-head"><div><span class="eyebrow">ORDERS</span><h2>My orders</h2><p>Orders you placed as a customer, or orders for your listings as a farmer.</p></div></div><div id="ordersList" class="product-grid"><div class="empty">Loading orders…</div></div></section>
 </main>
-<footer><a class="brand" href="#">🌱 Kisan<span>Direct</span></a><p>Growing a fairer food chain, together.</p><small>AI estimates are for educational demonstration only.</small></footer>
-<div id="authModal" class="modal hidden"><div class="modal-card"><button class="close" onclick="hideAuth()">×</button><h2>Welcome to Kisan Direct</h2><div class="tabs"><button onclick="setMode('login')" id="loginTab" class="active">Login</button><button onclick="setMode('register')" id="registerTab">Register</button></div><div id="nameWrap"><label>Full name<input id="authName" placeholder="Your name"></label></div><label>Email<input id="authEmail" type="email" placeholder="you@example.com"></label><label>Password<input id="authPassword" type="password" placeholder="At least 6 characters"></label><div id="roleWrap"><label>Account type<select id="authRole"><option value="farmer">Farmer</option><option value="customer">Customer</option></select></label></div><button class="btn primary full" onclick="submitAuth()" id="authSubmit">Login</button><p id="authMessage" class="message"></p></div></div>
-<script src="app.js"></script></body></html>
+<footer><a class="brand" href="/">🌱 Kisan<span>Direct</span></a><p>Growing a fairer food chain, together.</p><small>AI estimates are for educational demonstration only.</small></footer>
+<div id="authModal" class="modal hidden"><div class="modal-card"><button class="close" onclick="hideAuth()">×</button><h2>Welcome to Kisan Direct</h2><div class="tabs"><button onclick="setMode('login')" id="loginTab" class="active">Login</button><button onclick="setMode('register')" id="registerTab">Register</button></div><div id="nameWrap"><label>Full name<input id="authName" placeholder="Your name"></label></div><label>Email<input id="authEmail" type="email" placeholder="you@example.com"></label><label>Password<input id="authPassword" type="password" placeholder="At least 6 characters"></label><div id="roleWrap"><label>Account type<select id="authRole"><option value="farmer">Farmer</option><option value="customer">Customer</option></select></label></div><button class="btn primary full" onclick="submitAuth()" id="authSubmit">Login</button><p id="authMessage" class="message"></p><p><small><a href="/auth">Use the full login page</a></small></p></div></div>
+<script src="/app.js"></script></body></html>

@@ -87,3 +87,86 @@ Both fixes committed locally to branch `integration` as `4ec07bc` (2 files, 3 in
 - The suite was re-run against the code in this repo (branch `integration`, after the favicon/dashboard fixes and the README update): **26 passed, 0 failed**, same counts as above. Only console error is the intentional 401 from the wrong-password test.
 - `test_browser.py` in this repo is portable: it uses Playwright's default Chromium unless `PLAYWRIGHT_CHROME_PATH` is set, and writes screenshots/results next to itself.
 - Correction to the "What remains untested" section above: the Emergent demo WAS browser-tested separately on 2026-11-13. It is a frontend-only prototype with no login/register, no backend, and sample data only; its AI price advisor gives a sample result, not a live ML prediction.
+
+## Addendum — 2026-11-13, deployment-prep re-run (branch deployment-prep)
+
+- Re-verified against merged main (commit 9440534): pytest
+  `tests/test_integration.py` 8 passed, 0 failed.
+- After the production-hardening changes (see DEPLOYMENT.md):
+  pytest `tests/test_integration.py` + `tests/test_production.py`
+  **17 passed, 0 failed** (8 integration + 9 production smoke tests).
+- Playwright suite re-run against the hardened code, fresh DB:
+  **26 passed, 0 failed**. Only console error is the intentional 401
+  from the wrong-password test.
+- Same-origin serving verified separately: backend with
+  KISAN_SERVE_FRONTEND=1 returns 200 text/html containing
+  "Kisan Direct" for GET /, and /api/health returns {"status":"ok"}.
+  Note: model training makes the first startup take about 15 seconds;
+  the Fly health check grace period is 60s.
+
+## Addendum — 2026-11-13, complete journey (branch deployment-prep)
+
+The production server previously served only the marketplace at `/`.
+The backend now serves the whole website from one origin:
+`/` standalone homepage, `/auth` login/register (`/login` redirects
+here), `/marketplace` marketplace, `/dashboard` farmer dashboard.
+Legacy URLs `/index.html` and `/farmer-dashboard.html` redirect to
+`/marketplace` and `/dashboard`.
+
+- Pytest `tests/test_integration.py` + `tests/test_production.py`:
+  **18 passed, 0 failed** (9 integration including the new journey
+  routes, 9 production smoke tests).
+- Playwright suite rewritten for the full homepage-to-order journey,
+  backend on 127.0.0.1:8000 with a fresh DB, Chrome for Testing
+  158.0.8127.18: **38 passed, 0 failed** (first run 21/27, then fixed
+  and re-run green). Checks include: homepage loads with CSS,
+  homepage nav to `/marketplace`, seeded listings, price prediction
+  ₹27.33/kg, demand Medium (166.9), auth modal opens, `/login` ->
+  `/auth`, farmer registers on `/auth` and is redirected to
+  `/dashboard`, dashboard live data, dashboard nav to `/marketplace`,
+  farmer creates a listing (Onion, 50 kg, ₹30/kg, Howrah), dashboard
+  shows 1 listing, logout, customer registers on `/auth` and is
+  redirected to `/marketplace`, Buy button, Order #1 (10 kg Onion,
+  ₹30/kg, Placed), My Orders, customer on `/dashboard` sees a
+  farmer-only message, wrong password rejected on `/auth`, and
+  unauthenticated `/dashboard` shows a login prompt linking to `/auth`.
+  Mobile 390x844: homepage, `/auth`, `/marketplace`, `/dashboard`
+  all load with no horizontal overflow.
+- Console errors on the green run: 5x
+  `net::ERR_TUNNEL_CONNECTION_FAILED` and the intentional 401 from
+  the wrong-password test. The tunnel errors are this VM's browser
+  failing to reach external images/CDNs (Unsplash hero images,
+  Font Awesome) through its network proxy, not the app: no app
+  resource failed. The old favicon 404 is gone (homepage and auth
+  pages now have inline favicons too).
+- Screenshots in this folder are now from the journey run:
+  `01-homepage-desktop.png`, `02-marketplace-ai.png`,
+  `03-auth.png`, `04-dashboard.png`, `05-new-listing.png`,
+  `06-customer-order.png`, `07-login-error.png`,
+  `08-homepage-mobile.png`, `09-dashboard-mobile.png`,
+  `10-auth-mobile.png`, `11-marketplace-mobile.png`.
+
+## Bugs found and fixed in the journey work
+
+1. **Auth page phone login was broken (real bug, never browser-tested
+   before).** `auth.html` mapped a phone number to
+   `9876543210@kisan.local`, but the backend's EmailStr validation
+   rejects `.local` (reserved special-use name), so every phone
+   registration returned 422. Fixed: the mapping is now
+   `9876543210@phone.kisan.direct` (verified by curl first). This is
+   a login id only, not a real mailbox.
+2. **Homepage and auth pages had no favicon** (404 console error on
+   every load). Fixed with inline SVG favicons, as the marketplace
+   already had.
+3. **Dashboard had no handling for visitors/customers.** It showed
+   an empty dashboard with "Sign in as a farmer" as small text.
+   Fixed: a clear login prompt banner (with a link to `/auth`) for
+   visitors, and a "farmer accounts only" banner for logged-in
+   customers.
+4. **Dockerfile did not copy `standalone-pages/`.** The new routes
+   need those files in the image. Fixed: `COPY standalone-pages/
+   ./standalone-pages/` added. Docker itself is still NOT verified
+   here (no binary, apt has no `docker.io` package). Instead, the
+   exact container file layout was simulated in a clean directory
+   with production env vars: `/`, `/auth`, `/marketplace`,
+   `/dashboard`, `/api/health` all 200, `/docs` 404.
