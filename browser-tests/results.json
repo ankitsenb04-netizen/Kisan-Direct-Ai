@@ -1,19 +1,34 @@
 {
   "results": [
     [
-      "homepage loads 200",
+      "homepage / loads 200",
       "PASS",
       "status=200"
     ],
     [
       "homepage title/brand",
       "PASS",
-      "Kisan Direct | AI Farmer Marketplace"
+      "Kisan Direct | Sell Smarter. Earn Better."
     ],
     [
-      "homepage nav links present",
+      "homepage hero",
       "PASS",
       ""
+    ],
+    [
+      "homepage CSS loads",
+      "PASS",
+      ""
+    ],
+    [
+      "homepage nav Marketplace -> /marketplace",
+      "PASS",
+      "http://127.0.0.1:8000/marketplace"
+    ],
+    [
+      "marketplace title",
+      "PASS",
+      "Kisan Direct | AI Farmer Marketplace"
     ],
     [
       "seeded listings visible",
@@ -31,29 +46,24 @@
       "Demand level: Medium Demo demand index: 166.9 Demo demand index (not tonnes or confirmed orders); trained on synthetic data."
     ],
     [
-      "auth modal opens",
+      "marketplace auth modal opens",
       "PASS",
       ""
     ],
     [
-      "register farmer + auto-login",
+      "/login redirects to /auth",
       "PASS",
-      "Hi, Test Farmer shown"
+      "http://127.0.0.1:8000/auth"
     ],
     [
-      "dashboard link visible for farmer",
+      "auth page loads",
       "PASS",
       ""
     ],
     [
-      "farmer creates listing",
+      "register farmer on /auth redirects to /dashboard",
       "PASS",
-      ""
-    ],
-    [
-      "new listing appears in marketplace",
-      "PASS",
-      ""
+      "http://127.0.0.1:8000/dashboard"
     ],
     [
       "dashboard greeting",
@@ -86,9 +96,29 @@
       ""
     ],
     [
-      "dashboard stat listings > 0",
+      "dashboard nav Marketplace -> /marketplace",
+      "PASS",
+      "http://127.0.0.1:8000/marketplace"
+    ],
+    [
+      "farmer creates listing",
+      "PASS",
+      ""
+    ],
+    [
+      "new listing appears in marketplace",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard stat listings = 1",
       "PASS",
       "listings=1"
+    ],
+    [
+      "dashboard My Produce shows new listing",
+      "PASS",
+      ""
     ],
     [
       "logout works",
@@ -96,7 +126,12 @@
       ""
     ],
     [
-      "register customer + auto-login",
+      "register customer on /auth redirects to /marketplace",
+      "PASS",
+      "http://127.0.0.1:8000/marketplace"
+    ],
+    [
+      "customer logged in on marketplace",
       "PASS",
       ""
     ],
@@ -108,7 +143,7 @@
     [
       "customer places order via Buy button",
       "PASS",
-      "dialogs: prompt: Quantity in kg:; alert: Order placed! Order #1"
+      "dialogs: alert: Congratulations Test Farmer! Your account has been created successfully. Please login now.; alert: Congratulations Test Buyer! Your account has been created successfully. Please login now.; prompt: Quantity in kg:; alert: Order placed! Order #1"
     ],
     [
       "My Orders shows the order",
@@ -116,9 +151,24 @@
       "Order #1 \u2014 Onion  10 kg \u00b7 \u20b930/kg \u00b7 Howrah  Status: Placed"
     ],
     [
-      "wrong password rejected in UI",
+      "customer on /dashboard sees farmer-only message",
       "PASS",
-      "Incorrect email or password."
+      ""
+    ],
+    [
+      "wrong password rejected on /auth",
+      "PASS",
+      "Incorrect mobile number or password!"
+    ],
+    [
+      "unauthenticated /dashboard shows login prompt",
+      "PASS",
+      ""
+    ],
+    [
+      "dashboard login prompt links to /auth",
+      "PASS",
+      "http://127.0.0.1:8000/auth"
     ],
     [
       "mobile homepage loads, no horizontal overflow",
@@ -126,14 +176,29 @@
       "scrollWidth=390"
     ],
     [
-      "mobile dashboard loads",
+      "mobile /auth loads, no horizontal overflow",
       "PASS",
-      ""
+      "scrollWidth=390"
+    ],
+    [
+      "mobile /marketplace loads, no horizontal overflow",
+      "PASS",
+      "scrollWidth=390"
+    ],
+    [
+      "mobile /dashboard loads, no horizontal overflow",
+      "PASS",
+      "scrollWidth=390"
     ]
   ],
   "console_errors": [
+    "[error] Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "[error] Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "[error] Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "[error] Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
+    "[error] Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED",
     "[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)"
   ],
-  "passed": 26,
+  "passed": 38,
   "failed": 0
 }

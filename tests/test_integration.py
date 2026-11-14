@@ -55,6 +55,26 @@ def test_home_health_and_openapi(client):
     assert "/api/orders" in paths and "/api/buyers" in paths and "/api/me" in paths
 
 
+def test_journey_routes_serve_the_right_pages(client):
+    c, _ = client
+    # Same-origin journey: homepage, auth, marketplace, dashboard.
+    assert "Sell Smarter" in c.get("/").text
+    assert "Kisan Portal" in c.get("/auth").text
+    assert "AI Farmer Marketplace" in c.get("/marketplace").text
+    assert "Farmer Dashboard" in c.get("/dashboard").text
+    assert c.get("/homepage.css").status_code == 200
+    assert c.get("/style.css").status_code == 200
+    assert c.get("/app.js").status_code == 200
+    # /login is canonicalised to /auth; legacy file URLs redirect.
+    assert c.get("/login", follow_redirects=False).headers["location"] == "/auth"
+    assert c.get("/index.html", follow_redirects=False).headers["location"] == "/marketplace"
+    assert c.get("/farmer-dashboard.html", follow_redirects=False).headers["location"] == "/dashboard"
+    # Unknown API paths 404 as JSON, they never leak the homepage HTML.
+    r = c.get("/api/nope")
+    assert r.status_code == 404
+    assert "text/html" not in r.headers.get("content-type", "")
+
+
 def test_seed_demo_data(client):
     c, tmp = client
     # Seeded on first import: Ramesh + 3 products exist before any test user registers

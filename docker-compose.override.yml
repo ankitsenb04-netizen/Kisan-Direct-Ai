@@ -1,0 +1,18 @@
+# Local development override. Applied automatically by `docker compose`
+# (compose reads docker-compose.yml + docker-compose.override.yml).
+# Dev mode: no fail-fast secret check, docs on, demo seed data on, and
+# the whole website served from the backend on :8000 (same origin as
+# production, so local and deployed behaviour match).
+#   docker compose up --build          # website at http://127.0.0.1:8000/
+services:
+  backend:
+    ports:
+      - "8000:8000"
+    environment:
+      KISAN_ENV: development
+      KISAN_SECRET_KEY: ""
+      KISAN_CORS_ORIGINS: http://127.0.0.1:8000,http://localhost:8000
+      KISAN_SEED_DEMO_DATA: "1"
+      KISAN_ENABLE_DOCS: "1"
+      KISAN_SERVE_FRONTEND: "1"
+      KISAN_DB_PATH: /data/kisan_direct.db

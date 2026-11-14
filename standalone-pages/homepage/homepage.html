@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kisan Direct | Sell Smarter. Earn Better.</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
     <link rel="stylesheet" href="homepage.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -12,10 +13,10 @@
 <!-- ================= NAVBAR ================= -->
 <header class="navbar">
     <div class="logo"><i class="fa-solid fa-leaf"></i><span>Kisan<span>Direct</span></span></div>
-    <nav><a href="../../mvp/frontend/index.html">Home</a><a href="#how">How It Works</a><a href="#features">Features</a><a href="#impact">Impact</a></nav>
+    <nav><a href="/">Home</a><a href="/marketplace">Marketplace</a><a href="/dashboard">Dashboard</a><a href="#how">How It Works</a><a href="#features">Features</a><a href="#impact">Impact</a></nav>
     <div class="auth-buttons">
-        <a href="../auth/auth.html"><button class="login-btn">Login</button></a>
-        <a href="../auth/auth.html"><button class="register-btn">Register</button></a>
+        <a href="/auth"><button class="login-btn">Login</button></a>
+        <a href="/auth?tab=register"><button class="register-btn">Register</button></a>
     </div>
 </header>
 <!-- ================= HERO ================= -->
@@ -25,8 +26,8 @@
         <h1>Sell Smarter.<br><span>Earn Better.</span></h1>
         <p class="description">Kisan Direct helps farmers and FPOs find the best buyers, compare prices, reduce unnecessary intermediaries and optimize logistics.</p>
         <div class="hero-buttons">
-            <a href="../../mvp/frontend/index.html#sell"><button class="sell-btn"><i class="fa-solid fa-seedling"></i> Start Selling</button></a>
-            <button class="works-btn">How It Works <i class="fa-solid fa-arrow-right"></i></button>
+            <a href="/marketplace#sell"><button class="sell-btn"><i class="fa-solid fa-seedling"></i> Start Selling</button></a>
+            <button class="works-btn" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works <i class="fa-solid fa-arrow-right"></i></button>
         </div>
         <div class="quick-features">
             <div class="quick-item"><i class="fa-solid fa-user"></i><span>Better Farmer<br>Realization</span></div>
@@ -34,8 +35,8 @@
             <div class="quick-item"><i class="fa-solid fa-brain"></i><span>AI Based<br>Matching</span></div>
         </div>
         <div class="info-cards">
-            <div class="info-card"><div class="card-icon"><i class="fa-solid fa-person"></i></div><div><h3>Farmer</h3><p>50K+ Farmers</p><a href="../../mvp/frontend/index.html">Explore Now →</a></div></div>
-            <div class="info-card"><div class="card-icon ai-icon"><i class="fa-solid fa-leaf"></i></div><div><h3>AI Matching</h3><p>Find Best Buyers</p><a href="../../mvp/frontend/index.html">Explore Now →</a></div></div>
+            <div class="info-card"><div class="card-icon"><i class="fa-solid fa-person"></i></div><div><h3>Farmer</h3><p>50K+ Farmers</p><a href="/marketplace">Explore Now →</a></div></div>
+            <div class="info-card"><div class="card-icon ai-icon"><i class="fa-solid fa-leaf"></i></div><div><h3>AI Matching</h3><p>Find Best Buyers</p><a href="/marketplace">Explore Now →</a></div></div>
         </div>
         <div class="buyer-bar"><i class="fa-solid fa-flag"></i><span>Best Buyer Found</span><i class="fa-solid fa-arrow-right"></i></div>
     </div>
@@ -74,7 +75,7 @@
 <footer>
     <div class="footer-logo"><i class="fa-solid fa-leaf"></i> Kisan Direct</div>
     <p>Empowering farmers through technology.</p>
-    <div class="footer-links"><a href="../../mvp/frontend/index.html">Home</a><a href="#how">How It Works</a><a href="#features">Features</a><a href="#impact">Impact</a></div>
+    <div class="footer-links"><a href="/">Home</a><a href="/marketplace">Marketplace</a><a href="/auth">Login</a><a href="#how">How It Works</a><a href="#features">Features</a><a href="#impact">Impact</a></div>
     <div class="copyright">© 2026 Kisan Direct. All Rights Reserved.</div>
 </footer>
 </body>
